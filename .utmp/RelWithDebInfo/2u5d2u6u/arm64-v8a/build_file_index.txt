@@ -1,0 +1,2 @@
+D:\Unity Project\VRMeetup 2.0\VRMeetup\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\CMakeLists.txt
+D:\Unity Project\VRMeetup 2.0\VRMeetup\Library\Bee\Android\Prj\IL2CPP\Gradle\unityLibrary\src\main\cpp\GameActivity\CMakeLists.txt
