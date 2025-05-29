@@ -11,6 +11,8 @@ namespace XRMultiplayer
 {
     public class LobbyUI : MonoBehaviour
     {
+        const string k_DebugPrepend = "<color=#938FFF>[Lobby UI]</color> ";
+
         [Header("Lobby List")]
         [SerializeField] Transform m_LobbyListParent;
         [SerializeField] GameObject m_LobbyListPrefab;
@@ -23,6 +25,10 @@ namespace XRMultiplayer
         [SerializeField] TMP_Text m_ConnectionUpdatedText;
         [SerializeField] TMP_Text m_ConnectionSuccessText;
         [SerializeField] TMP_Text m_ConnectionFailedText;
+
+        [Header("Connection By Code")]
+        [SerializeField] TMP_InputField m_LobbyJoinCode;
+        [SerializeField] Button m_LobbyJoinCodeButton;
 
         [Header("Room Creation")]
         [SerializeField] TMP_InputField m_RoomNameText;
@@ -140,10 +146,21 @@ namespace XRMultiplayer
         /// <remarks> This function is called from <see cref="XRIKeyboardDisplay"/>
         public void EnterRoomCode(string roomCode)
         {
+            Utils.Log($"{k_DebugPrepend} Inside Enter Room Code");
             ToggleConnectionSubPanel(2);
             NetworkGameManager.Connected.Subscribe(OnConnected);
             NetworkGameManager.Instance.JoinLobbyByCode(roomCode.ToUpper());
             m_ConnectionSuccessText.text = $"Joining Room: {roomCode.ToUpper()}";
+        }
+
+        public void LobbyJoinCode()
+        {
+            string roomCode = m_LobbyJoinCode.text;
+            Utils.Log($"{k_DebugPrepend}roomCode: {roomCode}");
+            if (!string.IsNullOrEmpty(roomCode))
+            {
+                m_LobbyJoinCodeButton.onClick.AddListener(() => EnterRoomCode(roomCode));
+            }
         }
 
         public void JoinLobby(Lobby lobby)
