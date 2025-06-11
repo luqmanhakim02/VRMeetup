@@ -14,6 +14,7 @@
     "com.unity.multiplayer.samples.coop": "https://github.com/Unity-Technologies/com.unity.multiplayer.samples.coop.git?path=/Packages/com.unity.multiplayer.samples.coop#main",
     "com.unity.netcode.gameobjects": "1.10.0",
     "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.postprocessing": "3.4.0",
     "com.unity.render-pipelines.universal": "17.0.3",
     "com.unity.services.authentication": "3.3.3",
     "com.unity.services.cloudsave": "3.2.2",
