@@ -10,6 +10,7 @@ namespace ReadyPlayerMe.XR
         [SerializeField] private GameObject avatarCreator;
         [SerializeField] private GameObject noNetwork;
         [SerializeField] private PanelManager panelManager;
+        [SerializeField] private GameObject saveButton;
 
         private Button[] buttons;
 
@@ -28,6 +29,7 @@ namespace ReadyPlayerMe.XR
 
             panelManager.ShowPanel(avatarCreator);
             simpleAvatarCreator.LoadAvatarCreatorElements();
+            saveButton.SetActive(true);
         }
 
         public void OnCalibrate()

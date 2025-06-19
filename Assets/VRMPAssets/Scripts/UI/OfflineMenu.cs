@@ -28,6 +28,7 @@ namespace XRMultiplayer
         [Header("Panel Objects")]
         [SerializeField] GameObject m_CustomizationPanel;
         [SerializeField] GameObject m_ConnectionPanel;
+        [SerializeField] GameObject m_LoginPanel;
 
         VoiceChatManager m_VoiceChatManager;
 
@@ -46,9 +47,24 @@ namespace XRMultiplayer
 
         private void Start()
         {
-            ShowCustomization();
             NetworkGameManager.Instance.connectionFailedAction += ConnectionFailed;
+            m_CustomizationPanel.SetActive(false);
+            
         }
+
+        //private void Update()
+        //{
+        //    if (!m_ConnectionPanel.activeSelf)
+        //    {
+        //        if (!m_LoginPanel.activeSelf)
+        //        {
+        //            ShowCustomization();
+        //        }
+        //    } else
+        //    {
+        //        CompleteCustomization();
+        //    }
+        //}
 
         private void OnDestroy()
         {
@@ -93,7 +109,7 @@ namespace XRMultiplayer
             m_VolumeIndicator.fillAmount = amp;
         }
 
-        void ShowCustomization()
+        public void ShowCustomization()
         {
             m_CustomizationPanel.SetActive(true);
             m_ConnectionPanel.SetActive(false);

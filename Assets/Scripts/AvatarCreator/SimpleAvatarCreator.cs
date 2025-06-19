@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ReadyPlayerMe.AvatarCreator;
 using ReadyPlayerMe.Core;
+using Unity.Services.Authentication;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace ReadyPlayerMe.XR
 {
@@ -20,15 +22,29 @@ namespace ReadyPlayerMe.XR
         [SerializeField] private List<AssetSelectionUI> assetSelectionElementUis;
 
         [SerializeField] private UnityEvent<AvatarProperties> onTemplateSelected;
-        
+
+        [SerializeField] private Button saveButton;  // Reference to the save button
+
         private AvatarManager avatarManager;
 
         private OutfitGender gender = OutfitGender.None;
 
+        private AvatarProperties? currentAvatarProperties; // Hold the properties of the current avatar
+
         private void Start()
         {
+
+            // Set the listener for the save button click
+            if (saveButton != null)
+            {
+                saveButton.onClick.AddListener(OnSaveButtonClick);  // Assign listener for saving the avatar
+            }
+
             assetSelectionElementUis.ForEach(element =>
                 element.AssetSelectionElement.OnAssetSelected.AddListener(OnAssetSelection));
+
+            // Load saved avatars at the start (handled by SavedAvatarElement.cs)
+            SavedAvatarElement.Instance.LoadSavedAvatars();
         }
 
         public void LoadAvatarCreatorElements()
@@ -77,6 +93,9 @@ namespace ReadyPlayerMe.XR
             SetGender(avatarProperties.Gender);
             onTemplateSelected?.Invoke(avatarProperties);
 
+            // Update the current avatar properties whenever the avatar is customized or changed
+            UpdateCurrentAvatar(avatarProperties);
+
             mainPanelManager.ShowPanel(panelElements);
             loading.SetActive(false);
         }
@@ -108,6 +127,45 @@ namespace ReadyPlayerMe.XR
             var avatarData = AvatarComponentReferences.Instance.AvatarData;
             avatarData.AvatarId = id;
             avatarData.AvatarMetadata = metadata;
+        }
+
+
+        // Save the avatar data using PlayerPrefs
+        public void SaveAvatar(AvatarProperties avatarProperties)
+        {
+            string userId = AuthenticationService.Instance.PlayerId;
+            string avatarKey = userId + "_Avatar_" + avatarProperties.Id;
+            string avatarDataJson = JsonUtility.ToJson(avatarProperties);
+            PlayerPrefs.SetString(avatarKey, avatarDataJson);
+
+            // Store the avatar key in a list (this can be comma-separated)
+            string savedKeysListKey = userId + "_SavedAvatarKeys";
+            string savedKeys = PlayerPrefs.GetString(savedKeysListKey, "");
+            savedKeys += string.IsNullOrEmpty(savedKeys) ? avatarKey : "," + avatarKey;
+            PlayerPrefs.SetString(savedKeysListKey, savedKeys);
+
+            PlayerPrefs.Save();
+            Debug.Log("Avatar saved: " + avatarKey);
+        }
+
+        private void OnSaveButtonClick()
+        {
+            // Save the current avatar's properties when the button is clicked
+            if (!currentAvatarProperties.HasValue)
+            {
+                Debug.LogError("No avatar properties to save.");
+            }
+            else
+            {
+                SaveAvatar(currentAvatarProperties.Value);  // Access the value using `.Value`
+            }
+        }
+
+        // Update the current avatar properties (used when customizing)
+        public void UpdateCurrentAvatar(AvatarProperties avatarProperties)
+        {
+            currentAvatarProperties = avatarProperties;
+            Debug.Log("Current avatar properties updated.");
         }
     }
 }
