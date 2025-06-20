@@ -140,6 +140,8 @@ namespace CustomMultiplayer
         /// </summary>
         [SerializeField] private AuthManagerNew m_AuthenticationManager;  // Private field, exposed in the Inspector.
 
+        [SerializeField] public markerSpawn marker;
+
         /// <summary>
         /// Lobby Manager handles the Lobby and Relay work between players.
         /// </summary>
@@ -537,6 +539,7 @@ namespace CustomMultiplayer
                 Utils.Log($"{k_DebugPrepend}Connected to game session. Lobby: {m_LobbyManager.connectedLobby.Name}.");
                 m_ConnectionState.Value = ConnectionState.Connected;
                 SubscribeToLobbyEvents();
+                markerSpawn();
             }
             else
             {
@@ -546,6 +549,11 @@ namespace CustomMultiplayer
 
             return connected;
 
+        }
+
+        private void markerSpawn()
+        {
+            marker.OnNetworkSpawn();
         }
 
         /// <summary>
