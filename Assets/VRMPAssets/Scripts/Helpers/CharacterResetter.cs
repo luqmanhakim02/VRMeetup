@@ -77,7 +77,7 @@ namespace XRMultiplayer
         }
 
         [ContextMenu("Set Player To Offline Position")]
-        void SetPlayerToOfflinePosition()
+        public void SetPlayerToOfflinePosition()
         {
             ResetPlayer(offlinePosition);
         }

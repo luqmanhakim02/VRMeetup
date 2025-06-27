@@ -8,6 +8,7 @@ using TMPro;
 using System;
 using XRMultiplayer;
 using CustomMultiplayer;
+using UnityEngine.SceneManagement;
 //using UnityEditor.Search;
 
 namespace CustomNetwork
@@ -29,6 +30,8 @@ namespace CustomNetwork
 
         [SerializeField] private GameObject signInDisplay = default;
         [SerializeField] private GameObject lobbyDisplay = default;
+
+        [SerializeField] private CharacterResetter characterResetter;
 
         public static AuthManagerNew Instance;
 
@@ -305,6 +308,11 @@ namespace CustomNetwork
                 lobbyDisplay.SetActive(false);
                 signInDisplay.SetActive(true);
 
+                characterResetter.SetPlayerToOfflinePosition();
+
+                // Restart the scene to reset everything
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
                 return true;
             }
             catch (AuthenticationException ex)
@@ -330,6 +338,12 @@ namespace CustomNetwork
                 Utils.Log($"{k_DebugPrepend}Unexpected error: {ex.Message}");
                 return false;
             }
+        }
+
+        public void SignOutFromButton()
+        {
+            Debug.Log("SignOutFromButton clicked!");
+            SignOut();
         }
 
         public virtual async Task<bool> Authenticate()
