@@ -1,3 +1,4 @@
+using CustomMultiplayer;
 using Unity.XR.CoreUtils;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine;
@@ -92,9 +93,9 @@ namespace XRMultiplayer
 
         void OnEnable()
         {
-            XRINetworkGameManager.LocalPlayerColor.Subscribe(UpdatePlayerColor);
+            NetworkGameManager.LocalPlayerColor.Subscribe(UpdatePlayerColor);
             VoiceChatManager.s_HasMicrophonePermission.Subscribe(MicrophonePermissionGranted);
-            XRINetworkGameManager.Connected.Subscribe(connected =>
+            NetworkGameManager.Connected.Subscribe(connected =>
             {
                 gameObject.SetActive(!connected);
             });
@@ -102,10 +103,10 @@ namespace XRMultiplayer
 
         void OnDisable()
         {
-            XRINetworkGameManager.LocalPlayerColor.Unsubscribe(UpdatePlayerColor);
+            NetworkGameManager.LocalPlayerColor.Unsubscribe(UpdatePlayerColor);
             VoiceChatManager.s_HasMicrophonePermission.Subscribe(MicrophonePermissionGranted);
             StopMicrophone();
-            XRINetworkGameManager.Connected.Unsubscribe(connected =>
+            NetworkGameManager.Connected.Unsubscribe(connected =>
             {
                 gameObject.SetActive(!connected);
             });

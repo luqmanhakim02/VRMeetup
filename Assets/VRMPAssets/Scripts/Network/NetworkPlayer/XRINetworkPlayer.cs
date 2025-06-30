@@ -284,7 +284,8 @@ namespace XRMultiplayer
                 NetworkGameManager.Instance.LocalPlayerConnected(NetworkObject.OwnerClientId);
 
                 // Set the player position to the specified spawn location
-                transform.position = new Vector3(0f, 1.07999992f, 0.299917549f);
+                //transform.position = new Vector3(0f, 1.07999992f, 0.299917549f);
+                transform.position = new Vector3(0f, 0.116f, 0.299917549f);
 
 
                 if (m_XROrigin != null)

@@ -12,7 +12,8 @@ namespace XRMultiplayer
         private void Awake()
         {
             // Initialize m_Camera as null, it will be set later by PlatformManager
-            m_Camera = null;
+            //m_Camera = null;
+            m_Camera = Camera.main;
         }
 
         // Add a custom method to set the camera
