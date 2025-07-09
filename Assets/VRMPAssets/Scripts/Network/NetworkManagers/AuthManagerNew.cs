@@ -195,6 +195,8 @@ namespace CustomNetwork
         {
             try
             {
+                AuthenticationService.Instance.SignOut(true);
+
                 // Attempt to sign in with username and password
                 await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
 

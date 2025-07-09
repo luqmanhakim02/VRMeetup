@@ -1,47 +1,55 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Exclamation : MonoBehaviour {
-
+public class Exclamation : NetworkBehaviour
+{
     public GameObject exclamationFX;
 
-	// Use this for initialization
-	void Start () {
-
+    void Start()
+    {
         exclamationFX.SetActive(false);
-
     }
-	
-	// Update is called once per frame
-	void Update () {
 
-        if (Input.GetKeyDown(KeyCode.Z)) //check to see if the left mouse was pushed.
+    void Update()
+    {
+        if (!IsOwner && NetworkManager.Singleton.IsListening) return;
+
+        if (Input.GetKeyDown(KeyCode.Z))
         {
-
-            StartCoroutine("ExclamationOn");
-
+            if (NetworkManager.Singleton.IsListening)
+                TriggerExclamationServerRpc();
+            else
+                StartCoroutine(ExclamationOn());
         }
-
     }
 
-    // Trigger the exclamation effect when the button is clicked
     public void OnButtonClick()
+    {
+        if (!IsOwner && NetworkManager.Singleton.IsListening) return;
+
+        if (NetworkManager.Singleton.IsListening)
+            TriggerExclamationServerRpc();
+        else
+            StartCoroutine(ExclamationOn());
+    }
+
+    [ServerRpc]
+    void TriggerExclamationServerRpc()
+    {
+        TriggerExclamationClientRpc();
+    }
+
+    [ClientRpc]
+    void TriggerExclamationClientRpc()
     {
         StartCoroutine(ExclamationOn());
     }
 
     IEnumerator ExclamationOn()
     {
-
-
         exclamationFX.SetActive(true);
-
         yield return new WaitForSeconds(2.0f);
-
         exclamationFX.SetActive(false);
-
     }
-
 }

@@ -22,7 +22,7 @@ namespace ReadyPlayerMe.XR
             if (transferButton != null)
             {
                 transferButton.onClick.AddListener(OnTransferButtonClicked);
-            }
+        }
             else
             {
                 Debug.LogError("Transfer Button is not assigned!");
@@ -44,7 +44,7 @@ namespace ReadyPlayerMe.XR
 
         // Transfer the customized avatar data (meshes, textures, etc.) to the network avatar
         public void TransferToNetworkAvatar(GameObject customizedAvatar, GameObject networkAvatar)
-        {
+            {
             if (networkAvatar == null || customizedAvatar == null)
             {
                 Debug.LogError("Network Avatar or Customized Avatar is null.");
@@ -56,9 +56,9 @@ namespace ReadyPlayerMe.XR
 
         }
 
-        private void TransferMeshes(GameObject customizedAvatar, GameObject networkAvatarPrefab)
+        private void TransferMeshes(GameObject customizedAvatar, GameObject networkAvatar)
         {
-            GameObject networkAvatar = Instantiate(networkAvatarPrefab);
+            //GameObject networkAvatar = Instantiate(networkAvatarPrefab);
 
             // Assuming the customized avatar has the same structure as the network avatar
             var customizedMeshes = customizedAvatar.GetComponentsInChildren<SkinnedMeshRenderer>();
@@ -91,5 +91,18 @@ namespace ReadyPlayerMe.XR
                 networkAvatarMetadata.AvatarMetadata = customizedAvatarMetadata.AvatarMetadata;
             }
         }
+
+        [ContextMenu("Transfer Avatar Data (Manual)")]
+        public void ManualTransfer()
+        {
+            if (customizedAvatar == null || networkAvatarPrefab == null)
+            {
+                Debug.LogError("Either customizedAvatar or networkAvatar is null.");
+                return;
+            }
+
+            TransferToNetworkAvatar(customizedAvatar, networkAvatarPrefab);
+        }
+
     }
 }

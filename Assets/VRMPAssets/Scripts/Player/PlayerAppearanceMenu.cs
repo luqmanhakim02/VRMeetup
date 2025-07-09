@@ -19,13 +19,14 @@ namespace XRMultiplayer
         void Awake()
         {
             NetworkGameManager.LocalPlayerName.Subscribe(SetPlayerName);
+            Debug.Log("SINIIIII PLAYER NAMA: " + NetworkGameManager.LocalPlayerName.Value);
             NetworkGameManager.LocalPlayerColor.Subscribe(SetPlayerColor);
         }
 
         void Start()
         {
-            SetPlayerColor(NetworkGameManager.LocalPlayerColor.Value);
             SetPlayerName(NetworkGameManager.LocalPlayerName.Value);
+            SetPlayerColor(NetworkGameManager.LocalPlayerColor.Value);
         }
 
         void OnDestroy()

@@ -1,48 +1,55 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Stunned_Stars : MonoBehaviour {
-
+public class Stunned_Stars : NetworkBehaviour
+{
     public GameObject stunnedStarsFX;
 
-	// Use this for initialization
-
-	void Start ()
+    void Start()
     {
-
         stunnedStarsFX.SetActive(false);
-
     }
-	
 
-	void Update () {
+    void Update()
+    {
+        if (!IsOwner && NetworkManager.Singleton.IsListening) return;
 
-        if (Input.GetKeyDown(KeyCode.C)) //check to see if the left mouse was pushed.
+        if (Input.GetKeyDown(KeyCode.C))
         {
-
-            StartCoroutine("Stunned");
-
+            if (NetworkManager.Singleton.IsListening)
+                TriggerStunnedServerRpc();
+            else
+                StartCoroutine(Stunned());
         }
-
     }
 
-    // Trigger the exclamation effect when the button is clicked
     public void OnButtonClick()
+    {
+        if (!IsOwner && NetworkManager.Singleton.IsListening) return;
+
+        if (NetworkManager.Singleton.IsListening)
+            TriggerStunnedServerRpc();
+        else
+            StartCoroutine(Stunned());
+    }
+
+    [ServerRpc]
+    void TriggerStunnedServerRpc()
+    {
+        TriggerStunnedClientRpc();
+    }
+
+    [ClientRpc]
+    void TriggerStunnedClientRpc()
     {
         StartCoroutine(Stunned());
     }
 
     IEnumerator Stunned()
     {
-
-
         stunnedStarsFX.SetActive(true);
-
         yield return new WaitForSeconds(6.0f);
-
         stunnedStarsFX.SetActive(false);
-
     }
-
 }

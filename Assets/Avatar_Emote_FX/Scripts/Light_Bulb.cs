@@ -1,46 +1,63 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Light_Bulb : MonoBehaviour {
-
+public class Light_Bulb : NetworkBehaviour
+{
     public GameObject bulbFX;
 
-	// Use this for initialization
-	void Start () {
-
+    void Start()
+    {
         bulbFX.SetActive(false);
-
     }
-	
-	// Update is called once per frame
-	void Update () {
 
-        if (Input.GetKeyDown(KeyCode.X)) //check to see if the left mouse was pushed.
+    void Update()
+    {
+        if (!IsOwner && NetworkManager.Singleton.IsListening) return;
+
+        if (Input.GetKeyDown(KeyCode.X))
         {
-
-            StartCoroutine("BulbOn");
-
+            if (NetworkManager.Singleton.IsListening)
+            {
+                TriggerBulbServerRpc();
+            }
+            else
+            {
+                StartCoroutine(BulbOn()); // Local fallback if network is not active
+            }
         }
-
     }
 
-    // Trigger the exclamation effect when the button is clicked
     public void OnButtonClick()
+    {
+        if (!IsOwner && NetworkManager.Singleton.IsListening) return;
+
+        if (NetworkManager.Singleton.IsListening)
+        {
+            TriggerBulbServerRpc();
+        }
+        else
+        {
+            StartCoroutine(BulbOn()); // Local fallback
+        }
+    }
+
+    [ServerRpc]
+    void TriggerBulbServerRpc()
+    {
+        TriggerBulbClientRpc();
+    }
+
+    [ClientRpc]
+    void TriggerBulbClientRpc()
     {
         StartCoroutine(BulbOn());
     }
 
     IEnumerator BulbOn()
     {
-
-
         bulbFX.SetActive(true);
-
         yield return new WaitForSeconds(3.0f);
-
         bulbFX.SetActive(false);
-
     }
-
 }

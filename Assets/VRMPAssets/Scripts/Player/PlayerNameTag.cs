@@ -75,6 +75,8 @@ namespace XRMultiplayer
             m_Player = player;
 
             UpdateName(player.playerName);
+            Debug.Log("SINIIII PLAYERNAME TAG  " + player.name);
+
             m_ColoredImage.color = m_Player.playerColor;
 
             m_Player.onColorUpdated += UpdateColor;

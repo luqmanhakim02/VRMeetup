@@ -1,46 +1,55 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Question : MonoBehaviour {
-
+public class Question : NetworkBehaviour
+{
     public GameObject questionFX;
 
-	// Use this for initialization
-	void Start () {
-
+    void Start()
+    {
         questionFX.SetActive(false);
-
     }
-	
-	// Update is called once per frame
-	void Update () {
 
-        if (Input.GetKeyDown(KeyCode.B)) //check to see if the left mouse was pushed.
+    void Update()
+    {
+        if (!IsOwner && NetworkManager.Singleton.IsListening) return;
+
+        if (Input.GetKeyDown(KeyCode.B))
         {
-
-            StartCoroutine("QuestionOn");
-
+            if (NetworkManager.Singleton.IsListening)
+                TriggerQuestionServerRpc();
+            else
+                StartCoroutine(QuestionOn());
         }
-
     }
 
-    // Trigger the exclamation effect when the button is clicked
     public void OnButtonClick()
+    {
+        if (!IsOwner && NetworkManager.Singleton.IsListening) return;
+
+        if (NetworkManager.Singleton.IsListening)
+            TriggerQuestionServerRpc();
+        else
+            StartCoroutine(QuestionOn());
+    }
+
+    [ServerRpc]
+    void TriggerQuestionServerRpc()
+    {
+        TriggerQuestionClientRpc();
+    }
+
+    [ClientRpc]
+    void TriggerQuestionClientRpc()
     {
         StartCoroutine(QuestionOn());
     }
 
     IEnumerator QuestionOn()
     {
-
-
         questionFX.SetActive(true);
-
         yield return new WaitForSeconds(2.0f);
-
         questionFX.SetActive(false);
-
     }
-
 }

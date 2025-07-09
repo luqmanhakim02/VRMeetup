@@ -285,7 +285,7 @@ namespace XRMultiplayer
 
                 // Set the player position to the specified spawn location
                 //transform.position = new Vector3(0f, 1.07999992f, 0.299917549f);
-                transform.position = new Vector3(0f, 0.116f, 0.299917549f);
+                transform.position = new Vector3(0f, 0.116f, 0f);
 
 
                 if (m_XROrigin != null)
@@ -318,14 +318,17 @@ namespace XRMultiplayer
         protected virtual void SetupLocalPlayer()
         {
             foreach (var hand in m_handsObjects)
-            {
+            {  
                 hand.SetActive(false);
             }
 
-            m_PlayerColor.Value = NetworkGameManager.LocalPlayerColor.Value;
             m_PlayerName.Value = new FixedString128Bytes(NetworkGameManager.LocalPlayerName.Value);
-            NetworkGameManager.LocalPlayerColor.Subscribe(UpdateLocalPlayerColor);
+            m_PlayerColor.Value = NetworkGameManager.LocalPlayerColor.Value;
+
+            Debug.Log("SINIII XRINETWORKPLAYER NAME " + m_PlayerName.Value);
+
             NetworkGameManager.LocalPlayerName.Subscribe(UpdateLocalPlayerName);
+            NetworkGameManager.LocalPlayerColor.Subscribe(UpdateLocalPlayerColor);
             m_VoiceChat.selfMuted.Subscribe(SelfMutedChanged);
             m_VoiceChat.ToggleSelfMute(true, true);
 
@@ -350,8 +353,8 @@ namespace XRMultiplayer
         void CompleteSetup()
         {
             NetworkGameManager.Instance.PlayerJoined(NetworkObject.OwnerClientId);
-            UpdatePlayerColor(Color.white, m_PlayerColor.Value);
             UpdatePlayerName(new FixedString128Bytes(""), m_PlayerName.Value);
+            UpdatePlayerColor(Color.white, m_PlayerColor.Value);
 
             WorldCanvas worldCanvas = FindFirstObjectByType<WorldCanvas>();
             if (worldCanvas != null)
