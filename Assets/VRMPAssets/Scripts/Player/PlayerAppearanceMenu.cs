@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -18,21 +17,20 @@ namespace XRMultiplayer
 
         void Awake()
         {
-            NetworkGameManager.LocalPlayerName.Subscribe(SetPlayerName);
-            Debug.Log("SINIIIII PLAYER NAMA: " + NetworkGameManager.LocalPlayerName.Value);
-            NetworkGameManager.LocalPlayerColor.Subscribe(SetPlayerColor);
+            XRINetworkGameManager.LocalPlayerName.Subscribe(SetPlayerName);
+            XRINetworkGameManager.LocalPlayerColor.Subscribe(SetPlayerColor);
         }
 
         void Start()
         {
-            SetPlayerName(NetworkGameManager.LocalPlayerName.Value);
-            SetPlayerColor(NetworkGameManager.LocalPlayerColor.Value);
+            SetPlayerColor(XRINetworkGameManager.LocalPlayerColor.Value);
+            SetPlayerName(XRINetworkGameManager.LocalPlayerName.Value);
         }
 
         void OnDestroy()
         {
-            NetworkGameManager.LocalPlayerName.Unsubscribe(SetPlayerName);
-            NetworkGameManager.LocalPlayerColor.Unsubscribe(SetPlayerColor);
+            XRINetworkGameManager.LocalPlayerName.Unsubscribe(SetPlayerName);
+            XRINetworkGameManager.LocalPlayerColor.Unsubscribe(SetPlayerColor);
         }
 
         /// <summary>
@@ -41,7 +39,7 @@ namespace XRMultiplayer
         /// <param name="text"></param>
         public void SubmitNewPlayerName(string text)
         {
-            NetworkGameManager.LocalPlayerName.Value = text;
+            XRINetworkGameManager.LocalPlayerName.Value = text;
         }
 
         /// <summary>
@@ -51,14 +49,14 @@ namespace XRMultiplayer
         public void SetRandomColor()
         {
             List<Color> availableColors = new(m_PlayerColors);
-            if (availableColors.Remove(NetworkGameManager.LocalPlayerColor.Value))
+            if (availableColors.Remove(XRINetworkGameManager.LocalPlayerColor.Value))
             {
 
-                NetworkGameManager.LocalPlayerColor.Value = availableColors[Random.Range(0, availableColors.Count)];
+                XRINetworkGameManager.LocalPlayerColor.Value = availableColors[Random.Range(0, availableColors.Count)];
             }
             else
             {
-                NetworkGameManager.LocalPlayerColor.Value = m_PlayerColors[Random.Range(0, m_PlayerColors.Length)];
+                XRINetworkGameManager.LocalPlayerColor.Value = m_PlayerColors[Random.Range(0, m_PlayerColors.Length)];
             }
         }
 

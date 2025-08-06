@@ -5,14 +5,11 @@ using UnityEngine.UI;
 using TMPro;
 using WebSocketSharp;
 using Unity.Services.Vivox;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
     public class LobbyUI : MonoBehaviour
     {
-        const string k_DebugPrepend = "<color=#938FFF>[Lobby UI]</color> ";
-
         [Header("Lobby List")]
         [SerializeField] Transform m_LobbyListParent;
         [SerializeField] GameObject m_LobbyListPrefab;
@@ -25,10 +22,6 @@ namespace XRMultiplayer
         [SerializeField] TMP_Text m_ConnectionUpdatedText;
         [SerializeField] TMP_Text m_ConnectionSuccessText;
         [SerializeField] TMP_Text m_ConnectionFailedText;
-
-        [Header("Connection By Code")]
-        [SerializeField] TMP_InputField m_LobbyJoinCode;
-        [SerializeField] Button m_LobbyJoinCodeButton;
 
         [Header("Room Creation")]
         [SerializeField] TMP_InputField m_RoomNameText;
@@ -55,10 +48,10 @@ namespace XRMultiplayer
         {
             m_PrivacyToggle.onValueChanged.AddListener(TogglePrivacy);
 
-            m_PlayerCount = NetworkGameManager.maxPlayers / 2;
+            m_PlayerCount = XRINetworkGameManager.maxPlayers / 2;
 
-            NetworkGameManager.Instance.connectionFailedAction += FailedToConnect;
-            NetworkGameManager.Instance.connectionUpdated += ConnectedUpdated;
+            XRINetworkGameManager.Instance.connectionFailedAction += FailedToConnect;
+            XRINetworkGameManager.Instance.connectionUpdated += ConnectedUpdated;
 
             foreach (Transform t in m_LobbyListParent)
             {
@@ -78,17 +71,17 @@ namespace XRMultiplayer
 
         private void OnDestroy()
         {
-            NetworkGameManager.Instance.connectionFailedAction -= FailedToConnect;
-            NetworkGameManager.Instance.connectionUpdated -= ConnectedUpdated;
+            XRINetworkGameManager.Instance.connectionFailedAction -= FailedToConnect;
+            XRINetworkGameManager.Instance.connectionUpdated -= ConnectedUpdated;
 
             LobbyManager.status.Unsubscribe(ConnectedUpdated);
         }
         public async void CheckInternetAsync()
         {
-            if (!NetworkGameManager.Instance.IsAuthenticated())
+            if (!XRINetworkGameManager.Instance.IsAuthenticated())
             {
                 ToggleConnectionSubPanel(5);
-                await NetworkGameManager.Instance.Authenticate();
+                await XRINetworkGameManager.Instance.Authenticate();
             }
             CheckForInternet();
         }
@@ -107,23 +100,23 @@ namespace XRMultiplayer
 
         public void CreateLobby()
         {
-            NetworkGameManager.Connected.Subscribe(OnConnected);
+            XRINetworkGameManager.Connected.Subscribe(OnConnected);
             if (m_RoomNameText.text.IsNullOrEmpty() || m_RoomNameText.text == "<Room Name>")
             {
-                m_RoomNameText.text = $"{NetworkGameManager.LocalPlayerName.Value}'s Room";
+                m_RoomNameText.text = $"{XRINetworkGameManager.LocalPlayerName.Value}'s Room";
             }
-            NetworkGameManager.Instance.CreateNewLobby(m_RoomNameText.text, m_Private, m_PlayerCount);
+            XRINetworkGameManager.Instance.CreateNewLobby(m_RoomNameText.text, m_Private, m_PlayerCount);
             m_ConnectionSuccessText.text = $"Joining {m_RoomNameText.text}";
         }
 
         public void UpdatePlayerCount(int count)
         {
-            m_PlayerCount = Mathf.Clamp(count, 1, NetworkGameManager.maxPlayers);
+            m_PlayerCount = Mathf.Clamp(count, 1, XRINetworkGameManager.maxPlayers);
         }
 
         public void CancelConnection()
         {
-            NetworkGameManager.Instance.CancelMatchmaking();
+            XRINetworkGameManager.Instance.CancelMatchmaking();
         }
 
         /// <summary>
@@ -146,35 +139,24 @@ namespace XRMultiplayer
         /// <remarks> This function is called from <see cref="XRIKeyboardDisplay"/>
         public void EnterRoomCode(string roomCode)
         {
-            Utils.Log($"{k_DebugPrepend} Inside Enter Room Code");
             ToggleConnectionSubPanel(2);
-            NetworkGameManager.Connected.Subscribe(OnConnected);
-            NetworkGameManager.Instance.JoinLobbyByCode(roomCode.ToUpper());
+            XRINetworkGameManager.Connected.Subscribe(OnConnected);
+            XRINetworkGameManager.Instance.JoinLobbyByCode(roomCode.ToUpper());
             m_ConnectionSuccessText.text = $"Joining Room: {roomCode.ToUpper()}";
-        }
-
-        public void LobbyJoinCode()
-        {
-            string roomCode = m_LobbyJoinCode.text;
-            Utils.Log($"{k_DebugPrepend}roomCode: {roomCode}");
-            if (!string.IsNullOrEmpty(roomCode))
-            {
-                m_LobbyJoinCodeButton.onClick.AddListener(() => EnterRoomCode(roomCode));
-            }
         }
 
         public void JoinLobby(Lobby lobby)
         {
             ToggleConnectionSubPanel(2);
-            NetworkGameManager.Connected.Subscribe(OnConnected);
-            NetworkGameManager.Instance.JoinLobbySpecific(lobby);
+            XRINetworkGameManager.Connected.Subscribe(OnConnected);
+            XRINetworkGameManager.Instance.JoinLobbySpecific(lobby);
             m_ConnectionSuccessText.text = $"Joining {lobby.Name}";
         }
 
         public void QuickJoinLobby()
         {
-            NetworkGameManager.Connected.Subscribe(OnConnected);
-            NetworkGameManager.Instance.QuickJoinLobby();
+            XRINetworkGameManager.Connected.Subscribe(OnConnected);
+            XRINetworkGameManager.Instance.QuickJoinLobby();
             m_ConnectionSuccessText.text = "Joining Random";
         }
 
@@ -230,7 +212,7 @@ namespace XRMultiplayer
             if (connected)
             {
                 ToggleConnectionSubPanel(3);
-                NetworkGameManager.Connected.Unsubscribe(OnConnected);
+                XRINetworkGameManager.Connected.Unsubscribe(OnConnected);
             }
         }
 
@@ -288,7 +270,7 @@ namespace XRMultiplayer
 
         async void GetAllLobbies()
         {
-            if (m_CooldownImage.enabled || (int)NetworkGameManager.CurrentConnectionState.Value < 2) return;
+            if (m_CooldownImage.enabled || (int)XRINetworkGameManager.CurrentConnectionState.Value < 2) return;
             if (m_CooldownFillRoutine != null) StopCoroutine(m_CooldownFillRoutine);
             m_CooldownFillRoutine = StartCoroutine(UpdateButtonCooldown());
 

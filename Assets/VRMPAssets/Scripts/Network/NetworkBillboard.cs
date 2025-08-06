@@ -1,4 +1,3 @@
-using CustomMultiplayer;
 using Unity.Netcode;
 using Unity.VRTemplate;
 using UnityEngine;
@@ -31,7 +30,7 @@ public class NetworkBillboard : NetworkBehaviour
         {
             m_TurnToFace.enabled = true;
 
-            if (NetworkGameManager.Instance.GetPlayerByID(NetworkObject.OwnerClientId, out XRINetworkPlayer player))
+            if (XRINetworkGameManager.Instance.GetPlayerByID(NetworkObject.OwnerClientId, out XRINetworkPlayer player))
             {
                 m_TurnToFace.faceTarget = player.head;
             }

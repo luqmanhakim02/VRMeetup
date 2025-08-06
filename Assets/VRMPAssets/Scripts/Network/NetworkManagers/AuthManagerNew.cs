@@ -201,7 +201,11 @@ namespace CustomNetwork
                 await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
 
                 Utils.Log($"{k_DebugPrepend}User {username} authenticated successfully");
-                return true;
+
+                XRINetworkGameManager.AuthenicationId = AuthenticationService.Instance.PlayerId;
+                XRINetworkGameManager.LocalPlayerName.Value = username;
+                return UnityServices.State == ServicesInitializationState.Initialized;
+                //return true;
             }
             catch (AuthenticationException ex)
             {
@@ -244,13 +248,13 @@ namespace CustomNetwork
                 if (isValidUser)
                 {
                     // Store authenticated username
-                    NetworkGameManager.LocalPlayerName.Value = username;
-                    NetworkGameManager.AuthenicationId = AuthenticationService.Instance.PlayerId;
+                    XRINetworkGameManager.LocalPlayerName.Value = username;
+                    XRINetworkGameManager.AuthenicationId = AuthenticationService.Instance.PlayerId;
 
                     // Invoke success event
                     OnSignInSuccess?.Invoke();
 
-                    Utils.Log($"{k_DebugPrepend}User {username} signed in successfully with ID: {NetworkGameManager.AuthenicationId}");
+                    Utils.Log($"{k_DebugPrepend}User {username} signed in successfully with ID: {XRINetworkGameManager.AuthenicationId}");
                     return true;
                 }
                 else
@@ -351,6 +355,11 @@ namespace CustomNetwork
         public virtual async Task<bool> Authenticate()
         {
             await InitializeUnityServices();
+            bool isUserSignedIn = IsAuthenticated();
+            if (isUserSignedIn)
+            {
+                XRINetworkGameManager.AuthenicationId = AuthenticationService.Instance.PlayerId;
+            }
             return UnityServices.State == ServicesInitializationState.Initialized;
         }
 

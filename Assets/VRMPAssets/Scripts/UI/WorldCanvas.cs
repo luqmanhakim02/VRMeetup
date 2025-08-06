@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -12,14 +11,14 @@ namespace XRMultiplayer
 
         private void Start()
         {
-            NetworkGameManager.Connected.Subscribe(OnConnectedUpdate);
-            NetworkGameManager.Instance.playerStateChanged += ConnectedPlayerStateChange;
+            XRINetworkGameManager.Connected.Subscribe(OnConnectedUpdate);
+            XRINetworkGameManager.Instance.playerStateChanged += ConnectedPlayerStateChange;
         }
 
         private void OnDestroy()
         {
-            NetworkGameManager.Connected.Unsubscribe(OnConnectedUpdate);
-            NetworkGameManager.Instance.playerStateChanged -= ConnectedPlayerStateChange;
+            XRINetworkGameManager.Connected.Unsubscribe(OnConnectedUpdate);
+            XRINetworkGameManager.Instance.playerStateChanged -= ConnectedPlayerStateChange;
         }
 
         void OnConnectedUpdate(bool connected)

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -25,7 +24,7 @@ namespace XRMultiplayer
 
         private void Update()
         {
-            if (NetworkGameManager.Connected.Value)
+            if (XRINetworkGameManager.Connected.Value)
             {
                 foreach (var kvp in m_PlayerDictionary)
                 {
@@ -36,8 +35,8 @@ namespace XRMultiplayer
 
         public void OnDestroy()
         {
-            NetworkGameManager.Instance.playerStateChanged -= ConnectedPlayerStateChange;
-            NetworkGameManager.Connected.Unsubscribe(OnConnected);
+            XRINetworkGameManager.Instance.playerStateChanged -= ConnectedPlayerStateChange;
+            XRINetworkGameManager.Connected.Unsubscribe(OnConnected);
         }
 
         /// <summary>
@@ -54,8 +53,8 @@ namespace XRMultiplayer
                 Destroy(t.gameObject);
             }
 
-            NetworkGameManager.Instance.playerStateChanged += ConnectedPlayerStateChange;
-            NetworkGameManager.Connected.Subscribe(OnConnected);
+            XRINetworkGameManager.Instance.playerStateChanged += ConnectedPlayerStateChange;
+            XRINetworkGameManager.Connected.Subscribe(OnConnected);
         }
 
         void OnConnected(bool connected)
@@ -99,7 +98,7 @@ namespace XRMultiplayer
             {
                 m_PlayerDictionary.Remove(slotToRemove);
                 Destroy(slotToRemove.gameObject);
-                m_PlayerCountText.text = $"{m_PlayerDictionary.Keys.Count}/{NetworkGameManager.Instance.lobbyManager.connectedLobby.MaxPlayers}";
+                m_PlayerCountText.text = $"{m_PlayerDictionary.Keys.Count}/{XRINetworkGameManager.Instance.lobbyManager.connectedLobby.MaxPlayers}";
             }
         }
 
@@ -108,7 +107,7 @@ namespace XRMultiplayer
             PlayerSlot slot = Instantiate(m_PlayerSlotPrefab, m_ConnectedPlayersViewportContentTransform).GetComponent<PlayerSlot>();
             slot.playerID = playerId;
 
-            if (NetworkGameManager.Instance.GetPlayerByID(playerId, out XRINetworkPlayer player))
+            if (XRINetworkGameManager.Instance.GetPlayerByID(playerId, out XRINetworkPlayer player))
             {
                 if (m_PlayerDictionary.TryAdd(slot, player))
                 {
@@ -120,7 +119,7 @@ namespace XRMultiplayer
                     }
                     slot.playerIconImage.color = player.playerColor;
 
-                    m_PlayerCountText.text = $"{m_PlayerDictionary.Keys.Count}/{NetworkGameManager.Instance.lobbyManager.connectedLobby.MaxPlayers}";
+                    m_PlayerCountText.text = $"{m_PlayerDictionary.Keys.Count}/{XRINetworkGameManager.Instance.lobbyManager.connectedLobby.MaxPlayers}";
                 }
             }
             else

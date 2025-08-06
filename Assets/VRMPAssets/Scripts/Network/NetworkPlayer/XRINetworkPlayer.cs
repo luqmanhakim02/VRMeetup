@@ -5,7 +5,6 @@ using Unity.Collections;
 using System;
 using Unity.Services.Vivox;
 using Unity.XR.CoreUtils.Bindings.Variables;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -96,10 +95,17 @@ namespace XRMultiplayer
 
         [HideInInspector] public readonly NetworkVariable<bool> selfMuted = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+
         /// <summary>
         /// Player Name Tag.
         /// </summary>
         [Header("Player Name Tag"), SerializeField, Tooltip("Player Name Tag.")] protected bool m_UpdateObjectName = true;
+
+
+        // /// <summary>
+        // /// Head Renderers to change rendering mode for local players.
+        // /// </summary>
+        // [SerializeField, Tooltip("Head Renderers to change rendering mode for local players.")] protected Renderer[] m_HeadRends;
 
         /// <summary>
         /// Hand Objects to be disabled for the local player.
@@ -122,7 +128,7 @@ namespace XRMultiplayer
         protected XROrigin m_XROrigin;
 
         /// <summary>
-        /// If the player has been connected to the game.
+        /// If the player has been connected to the the game.
         /// </summary>
         protected bool m_InitialConnected = false;
 
@@ -156,36 +162,10 @@ namespace XRMultiplayer
         /// </summary>
         protected Vector3 m_PrevHeadPos;
 
-        // UI Interaction Mode
-        private bool isUIInteractionMode = false;  // Track UI interaction state
-        private bool isMovementLocked = false; // Track movement state
-
-        private CharacterController characterController;  // Fallback for desktop controls
-        private float verticalLookRotation = 0f;
-
-        // Speed control
-        private float moveSpeed = 5f;  // Adjust speed as needed
-        private float smoothTime = 0.1f;  // Adjust smoothness as needed
-
-        // Velocity smoothing
-        private Vector3 currentVelocity = Vector3.zero;  // The current velocity of the player
-
         protected void Awake()
         {
             m_VoiceChat = FindFirstObjectByType<VoiceChatManager>();
             m_VoicePositionCheckTimer = m_VoicePositionUpdateTime;
-
-            // Check if XR Origin exists, if not fallback to desktop control
-            m_XROrigin = FindFirstObjectByType<XROrigin>();
-            if (m_XROrigin == null)
-            {
-                // If XR Origin is not found, use CharacterController for desktop controls
-                characterController = GetComponent<CharacterController>();
-                if (characterController == null)
-                {
-                    Debug.LogError("No CharacterController found! Please add one to the player.");
-                }
-            }
         }
 
         ///<inheritdoc/>
@@ -205,7 +185,7 @@ namespace XRMultiplayer
         ///<inheritdoc/>
         protected virtual void Update()
         {
-            if (IsOwner && NetworkGameManager.Instance.positionalVoiceChat)
+            if (IsOwner && XRINetworkGameManager.Instance.positionalVoiceChat)
             {
                 if (Time.time > m_VoicePositionCheckTimer)
                 {
@@ -214,7 +194,7 @@ namespace XRMultiplayer
                     if (Vector3.Distance(m_PrevHeadPos, m_HeadOrigin.position) > m_VoiceUpdatePosotionDelta)
                     {
                         m_PrevHeadPos = m_HeadOrigin.position;
-                        if (NetworkGameManager.Instance.positionalVoiceChat)
+                        if (XRINetworkGameManager.Instance.positionalVoiceChat)
                         {
                             m_VoiceChat.Set3DAudio(m_HeadOrigin);
                         }
@@ -223,20 +203,6 @@ namespace XRMultiplayer
             }
 
             m_VoiceAmplitudeCurrent = Mathf.Lerp(m_VoiceAmplitudeCurrent, m_VoiceAmplitudeDestination, Time.deltaTime * k_VoiceAmplitudeSpeed);
-
-            // Toggle UI interaction mode with the 'V' key
-            if (Input.GetKeyDown(KeyCode.V))
-            {
-                ToggleUIInteractionMode();
-            }
-
-            // Use desktop controls if no XR Origin is found
-            // Allow movement and look around if not in UI interaction mode
-            if (!isUIInteractionMode && m_XROrigin == null)
-            {
-                HandleMovement();
-                HandleMouseLook();
-            }
         }
 
         ///<inheritdoc/>
@@ -244,15 +210,10 @@ namespace XRMultiplayer
         {
             if (!IsOwner) return;
 
-            if (m_XROrigin != null)
-            {
-                // Update position and rotation for the hands
-                leftHand.SetPositionAndRotation(m_LeftHandOrigin.position, m_LeftHandOrigin.rotation);
-                rightHand.SetPositionAndRotation(m_RightHandOrigin.position, m_RightHandOrigin.rotation);
-
-                // Update the position and rotation for the head
-                head.SetPositionAndRotation(m_HeadOrigin.position, m_HeadOrigin.rotation);
-            }
+            // Set transforms to be replicated with ClientNetworkTransforms
+            leftHand.SetPositionAndRotation(m_LeftHandOrigin.position, m_LeftHandOrigin.rotation);
+            rightHand.SetPositionAndRotation(m_RightHandOrigin.position, m_RightHandOrigin.rotation);
+            head.SetPositionAndRotation(m_HeadOrigin.position, m_HeadOrigin.rotation);
         }
 
         ///<inheritdoc/>
@@ -262,15 +223,18 @@ namespace XRMultiplayer
 
             if (IsOwner)
             {
-                NetworkGameManager.LocalPlayerName.Unsubscribe(UpdateLocalPlayerName);
-                NetworkGameManager.LocalPlayerColor.Unsubscribe(UpdateLocalPlayerColor);
+                // Local Name unsubscribe.
+                XRINetworkGameManager.LocalPlayerName.Unsubscribe(UpdateLocalPlayerName);
+                XRINetworkGameManager.LocalPlayerColor.Unsubscribe(UpdateLocalPlayerColor);
                 m_VoiceChat.selfMuted.Unsubscribe(SelfMutedChanged);
             }
             else if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient)
             {
-                NetworkGameManager.Instance.PlayerLeft(NetworkObject.OwnerClientId);
+                // Inform Network Manager that player left current session.
+                XRINetworkGameManager.Instance.PlayerLeft(NetworkObject.OwnerClientId);
             }
 
+            // Unsubscribe from color updating.
             m_PlayerColor.OnValueChanged -= UpdatePlayerColor;
         }
 
@@ -280,21 +244,19 @@ namespace XRMultiplayer
             base.OnNetworkSpawn();
             if (IsOwner)
             {
+                // Set Local Player.
                 LocalPlayer = this;
-                NetworkGameManager.Instance.LocalPlayerConnected(NetworkObject.OwnerClientId);
+                XRINetworkGameManager.Instance.LocalPlayerConnected(NetworkObject.OwnerClientId);
 
-                // Set the player position to the specified spawn location
-                //transform.position = new Vector3(0f, 1.07999992f, 0.299917549f);
-                transform.position = new Vector3(0f, 0.116f, 0f);
-
-
+                // Get Origin and set head.
+                m_XROrigin = FindFirstObjectByType<XROrigin>();
                 if (m_XROrigin != null)
                 {
                     m_HeadOrigin = m_XROrigin.Camera.transform;
                 }
                 else
                 {
-                    Debug.Log("No XR Rig Available, falling back to desktop controls.");
+                    Utils.Log("No XR Rig Available", 1);
                 }
 
                 SetupLocalPlayer();
@@ -309,68 +271,101 @@ namespace XRMultiplayer
             onDisconnected?.Invoke(this);
         }
 
+        /// <summary>
+        /// Called from <see cref="XRHandPoseReplicator"/> when swapping between hand tracking and controllers.
+        /// </summary>
+        /// <param name="left">Transform for Left Hand.</param>
+        /// <param name="right">Transform for Right Hand.</param>
         public void SetHandOrigins(Transform left, Transform right)
         {
             m_LeftHandOrigin = left;
             m_RightHandOrigin = right;
         }
 
+        /// <summary>
+        /// Hides and disables Renderers and GameObjects on the Local Player.
+        /// Also sets the initial values for <see cref="m_PlayerColor"/> and <see cref="m_PlayerName"/>.
+        /// Finally we subscribe to any updates for Color and Name.
+        /// </summary>
+        /// <remarks>Only called on the Local Player.</remarks>
         protected virtual void SetupLocalPlayer()
         {
             foreach (var hand in m_handsObjects)
-            {  
+            {
                 hand.SetActive(false);
             }
 
-            m_PlayerName.Value = new FixedString128Bytes(NetworkGameManager.LocalPlayerName.Value);
-            m_PlayerColor.Value = NetworkGameManager.LocalPlayerColor.Value;
-
-            Debug.Log("SINIII XRINETWORKPLAYER NAME " + m_PlayerName.Value);
-
-            NetworkGameManager.LocalPlayerName.Subscribe(UpdateLocalPlayerName);
-            NetworkGameManager.LocalPlayerColor.Subscribe(UpdateLocalPlayerColor);
+            m_PlayerColor.Value = XRINetworkGameManager.LocalPlayerColor.Value;
+            m_PlayerName.Value = new FixedString128Bytes(XRINetworkGameManager.LocalPlayerName.Value);
+            XRINetworkGameManager.LocalPlayerColor.Subscribe(UpdateLocalPlayerColor);
+            XRINetworkGameManager.LocalPlayerName.Subscribe(UpdateLocalPlayerName);
             m_VoiceChat.selfMuted.Subscribe(SelfMutedChanged);
             m_VoiceChat.ToggleSelfMute(true, true);
 
             onSpawnedLocal?.Invoke();
         }
 
+        /// <summary>
+        /// Called from the local player only
+        /// </summary>
+        /// <param name="muted"></param>
         void SelfMutedChanged(bool muted)
         {
             selfMuted.Value = muted;
         }
 
+        /// <summary>
+        /// Callback for the bindable variable <see cref="XRINetworkGameManager.LocalPlayerColor"/>.
+        /// </summary>
+        /// <param name="color">New Color for player.</param>
+        /// <remarks>Only called on Local Player.</remarks>
         protected virtual void UpdateLocalPlayerColor(Color color)
         {
-            m_PlayerColor.Value = NetworkGameManager.LocalPlayerColor.Value;
+            m_PlayerColor.Value = XRINetworkGameManager.LocalPlayerColor.Value;
         }
 
+        /// <summary>
+        /// Callback for the bindable variable <see cref="XRINetworkGameManager.LocalPlayerName"/>.
+        /// </summary>
+        /// <param name="name">New Name for player.</param>
+        /// <remarks>Only called on Local Player.</remarks>
         protected virtual void UpdateLocalPlayerName(string name)
         {
-            m_PlayerName.Value = new FixedString128Bytes(NetworkGameManager.LocalPlayerName.Value);
+            m_PlayerName.Value = new FixedString128Bytes(XRINetworkGameManager.LocalPlayerName.Value);
         }
 
+        /// <summary>
+        /// Called when the player object is finished being setup.
+        /// </summary>
         void CompleteSetup()
         {
-            NetworkGameManager.Instance.PlayerJoined(NetworkObject.OwnerClientId);
-            UpdatePlayerName(new FixedString128Bytes(""), m_PlayerName.Value);
-            UpdatePlayerColor(Color.white, m_PlayerColor.Value);
+            // Add player to XRINetworkManager.
+            XRINetworkGameManager.Instance.PlayerJoined(NetworkObject.OwnerClientId);
 
+            // Update Color and Name.
+            UpdatePlayerColor(Color.white, m_PlayerColor.Value);
+            UpdatePlayerName(new FixedString128Bytes(""), m_PlayerName.Value);
+
+            // Check if WorldCanvas exists
             WorldCanvas worldCanvas = FindFirstObjectByType<WorldCanvas>();
             if (worldCanvas != null)
             {
+                // If we are using a World Canvas, reparent name tag and destroy local canvas.
                 Canvas localCanvas = m_PlayerNameTag.GetComponentInParent<Canvas>();
                 worldCanvas.SetupPlayerNameTag(this, m_PlayerNameTag);
                 Destroy(localCanvas.gameObject);
             }
             else
             {
+                // If we are not using a World Canvas, setup the name tag for local use.
                 m_PlayerNameTag.SetupNameTag(this);
             }
 
             onSpawnedAll?.Invoke();
         }
-
+        /// <summary>
+        /// Callback anytime the local player sets <see cref="m_PlayerName"/>.
+        /// </summary><remarks>Invokes the callback <see cref="onNameUpdated"/>.</remarks>
         void UpdatePlayerName(FixedString128Bytes oldName, FixedString128Bytes currentName)
         {
             onNameUpdated?.Invoke(currentName.ToString());
@@ -386,6 +381,9 @@ namespace XRMultiplayer
                 gameObject.name = currentName.ToString();
         }
 
+        /// <summary>
+        /// Callback when the local player sets <see cref="m_PlayerColor"/>.
+        /// </summary><remarks>Invokes the callback <see cref="onColorUpdated"/>.</remarks>
         void UpdatePlayerColor(Color oldColor, Color newColor)
         {
             onColorUpdated?.Invoke(newColor);
@@ -396,6 +394,10 @@ namespace XRMultiplayer
             m_VoiceAmplitudeDestination = Mathf.Clamp01(current);
         }
 
+        /// <summary>
+        /// Called when new players connect to the game and set their initial <see cref="m_PlayerVoiceId"/>
+        /// and when <see cref="VoiceChatManager.OnParticipantAdded(VivoxParticipant)"/> is called for existing players.
+        /// </summary>
         public void SetupVoicePlayer()
         {
             m_VivoxParticipant = m_VoiceChat.GetVivoxParticipantById(playerVoiceId);
@@ -413,7 +415,6 @@ namespace XRMultiplayer
                 VoiceChatManager.AddNewVivoxPlayer(playerVoiceId, this);
             }
         }
-
         private void ParticipantAudioEnergyChanged()
         {
             UpdatePlayerVoiceEnergy((float)m_VivoxParticipant.AudioEnergy);
@@ -424,12 +425,15 @@ namespace XRMultiplayer
             if (!IsOwner) return;
             m_PlayerVoiceId.Value = new FixedString128Bytes(voiceId);
             SetupVoicePlayer();
-            if (NetworkGameManager.Instance.positionalVoiceChat)
+            if (XRINetworkGameManager.Instance.positionalVoiceChat)
             {
                 m_VoiceChat.Set3DAudio(m_HeadOrigin);
             }
         }
 
+        /// <summary>
+        /// Called from clients to mute this player locally for that client.
+        /// </summary>
         public void ToggleSquelch()
         {
             if (m_VivoxParticipant != null)
@@ -440,86 +444,6 @@ namespace XRMultiplayer
                 else
                     m_VivoxParticipant.UnmutePlayerLocally();
             }
-        }
-
-        // Handle switching between UI interaction and normal mode
-        void ToggleUIInteractionMode()
-        {
-            // Toggle UI interaction mode
-            isUIInteractionMode = !isUIInteractionMode;
-
-            if (isUIInteractionMode)
-            {
-                // Lock camera movement and show the cursor for UI interaction
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-
-                // Optionally, stop player movement or set up an interaction mode for UI
-                isMovementLocked = true;  // Lock movement
-                characterController.enabled = false;  // Disable movement script
-            }
-            else
-            {
-                // Return to FPS mode
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;  // Hide the cursor again
-
-                // Enable player movement and camera control again
-                isMovementLocked = false;
-                characterController.enabled = true;  // Enable FPS movement script
-            }
-        }
-
-        // Desktop movement handling
-        private void HandleMovement()
-        {
-            if (isMovementLocked) return; // Prevent movement when locked
-
-            float horizontalInput = Input.GetAxis("Horizontal");
-            float verticalInput = Input.GetAxis("Vertical");
-
-            // Get movement direction based on input
-            Vector3 targetMoveDirection = transform.right * horizontalInput + transform.forward * verticalInput;
-
-            // Smoothly adjust the velocity using SmoothDamp (ensuring smooth transitions)
-            Vector3 smoothMoveDirection = Vector3.SmoothDamp(
-                currentVelocity,       // The current velocity
-                targetMoveDirection,   // The target velocity
-                ref currentVelocity,   // A reference to store the smoothed result
-                smoothTime);           // Time to smooth out (increase this for more smoothing)
-
-            // Apply movement based on smoothed velocity
-            if (characterController != null)
-            {
-                characterController.Move(smoothMoveDirection * moveSpeed * Time.deltaTime);  // Use the smoothed movement
-            }
-
-            // Rotate hands along with player rotation (based on movement direction)
-            if (m_XROrigin == null)
-            {
-                leftHand.Rotate(Vector3.up, horizontalInput * 10f);  // Adjust rotation speed as needed
-                rightHand.Rotate(Vector3.up, horizontalInput * 10f); // Adjust rotation speed as needed
-            }
-        }
-
-        // Desktop mouse look handling
-        private void HandleMouseLook()
-        {
-            if (isMovementLocked) return; // Prevent mouse look when locked
-
-            float mouseX = Input.GetAxis("Mouse X");
-            float mouseY = Input.GetAxis("Mouse Y");
-
-            transform.Rotate(Vector3.up, mouseX);  // Rotate horizontally based on mouse movement
-
-            verticalLookRotation -= mouseY;
-            verticalLookRotation = Mathf.Clamp(verticalLookRotation, -80f, 80f);
-            head.localRotation = Quaternion.Euler(verticalLookRotation, 0, 0);  // Rotate vertically based on mouse movement
-
-            // Make the camera follow the head position
-            Camera.main.transform.position = head.position;
-            Camera.main.transform.rotation = head.rotation;
-            
         }
     }
 }

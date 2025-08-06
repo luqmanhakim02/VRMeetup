@@ -6,8 +6,6 @@ using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine;
 using UnityEngine.Android;
 using System.Collections;
-using CustomMultiplayer;
-
 
 
 
@@ -144,8 +142,8 @@ namespace XRMultiplayer
         {
             m_ConnectedToRoom = false;
 
-            NetworkGameManager.CurrentConnectionState.Subscribe(ConnectionStateUpdated);
-            NetworkGameManager.Connected.Subscribe(ConnectedToGame);
+            XRINetworkGameManager.CurrentConnectionState.Subscribe(ConnectionStateUpdated);
+            XRINetworkGameManager.Connected.Subscribe(ConnectedToGame);
         }
 
         ///<inheritdoc/>
@@ -168,7 +166,7 @@ namespace XRMultiplayer
 
             if (connected)
             {
-                Login(NetworkGameManager.AuthenicationId, NetworkGameManager.Instance.lobbyManager.connectedLobby.Id);
+                Login(XRINetworkGameManager.AuthenicationId, XRINetworkGameManager.Instance.lobbyManager.connectedLobby.Id);
             }
             else
             {
@@ -176,9 +174,9 @@ namespace XRMultiplayer
             }
         }
 
-        void ConnectionStateUpdated(NetworkGameManager.ConnectionState connectionState)
+        void ConnectionStateUpdated(XRINetworkGameManager.ConnectionState connectionState)
         {
-            if (!m_IsInitialized && connectionState == NetworkGameManager.ConnectionState.Authenticated)
+            if (!m_IsInitialized && connectionState == XRINetworkGameManager.ConnectionState.Authenticated)
             {
                 Utils.Log($"{k_DebugPrepend}Initializing Voice Chat");
                 m_ConnectionStatus.Value = "Initializing Voice Service";
@@ -355,7 +353,7 @@ namespace XRMultiplayer
             else
             {
                 m_ConnectionStatus.Value = "Reconnecting to Voice Chat";
-                Login(NetworkGameManager.AuthenicationId, NetworkGameManager.Instance.lobbyManager.connectedLobby.Id);
+                Login(XRINetworkGameManager.AuthenicationId, XRINetworkGameManager.Instance.lobbyManager.connectedLobby.Id);
             }
         }
 

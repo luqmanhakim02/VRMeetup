@@ -11,20 +11,11 @@ namespace XRMultiplayer
 
         private void Awake()
         {
-            // Initialize m_Camera as null, it will be set later by PlatformManager
-            //m_Camera = null;
             m_Camera = Camera.main;
-        }
-
-        // Add a custom method to set the camera
-        public void SetCamera(Camera camera)
-        {
-            m_Camera = camera;
         }
 
         private void Update()
         {
-            // Perform the rotation logic
             Quaternion lookRot = Quaternion.LookRotation(m_Camera.transform.position - transform.position);
 
             if (m_WorldUp)

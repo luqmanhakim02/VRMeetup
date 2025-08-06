@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using XRMultiplayer;
-using CustomMultiplayer;
 
 public class GreetingBoardUI : MonoBehaviour
 {
@@ -11,22 +10,22 @@ public class GreetingBoardUI : MonoBehaviour
 
     private void OnEnable()
     {
-        NetworkGameManager.Connected.Subscribe(ConnectedToGame);
-        NetworkGameManager.ConnectedRoomName.Subscribe(UpdateRoomName);
+        XRINetworkGameManager.Connected.Subscribe(ConnectedToGame);
+        XRINetworkGameManager.ConnectedRoomName.Subscribe(UpdateRoomName);
     }
 
     private void OnDisable()
     {
-        NetworkGameManager.Connected.Unsubscribe(ConnectedToGame);
-        NetworkGameManager.ConnectedRoomName.Unsubscribe(UpdateRoomName);
+        XRINetworkGameManager.Connected.Unsubscribe(ConnectedToGame);
+        XRINetworkGameManager.ConnectedRoomName.Unsubscribe(UpdateRoomName);
     }
 
     void ConnectedToGame(bool connected)
     {
         if (connected)
         {
-            m_RoomNameText.text = NetworkGameManager.ConnectedRoomName.Value;
-            m_RoomCodeText.text = NetworkGameManager.ConnectedRoomCode;
+            m_RoomNameText.text = XRINetworkGameManager.ConnectedRoomName.Value;
+            m_RoomCodeText.text = XRINetworkGameManager.ConnectedRoomCode;
         }
     }
 

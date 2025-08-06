@@ -9,7 +9,6 @@ using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
 using UnityEngine.Android;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -63,8 +62,8 @@ namespace XRMultiplayer
             m_TurnProvider = FindFirstObjectByType<SnapTurnProvider>();
             m_TunnelingVignetteController = FindFirstObjectByType<UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort.TunnelingVignetteController>();
 
-            NetworkGameManager.Connected.Subscribe(ConnectOnline);
-            NetworkGameManager.ConnectedRoomName.Subscribe(UpdateRoomName);
+            XRINetworkGameManager.Connected.Subscribe(ConnectOnline);
+            XRINetworkGameManager.ConnectedRoomName.Subscribe(UpdateRoomName);
 
             m_VoiceChatManager.selfMuted.Subscribe(MutedChanged);
             m_VoiceChatManager.connectionStatus.Subscribe(UpdateVoiceChatStatus);
@@ -110,8 +109,8 @@ namespace XRMultiplayer
 
         private void OnDestroy()
         {
-            NetworkGameManager.Connected.Unsubscribe(ConnectOnline);
-            NetworkGameManager.ConnectedRoomName.Unsubscribe(UpdateRoomName);
+            XRINetworkGameManager.Connected.Unsubscribe(ConnectOnline);
+            XRINetworkGameManager.ConnectedRoomName.Unsubscribe(UpdateRoomName);
             m_VoiceChatManager.selfMuted.Unsubscribe(MutedChanged);
 
             m_VoiceChatManager.connectionStatus.Unsubscribe(UpdateVoiceChatStatus);
@@ -122,7 +121,7 @@ namespace XRMultiplayer
         private void Update()
         {
             m_TimeText.text = $"{DateTime.Now:h:mm}<size=4><voffset=1em>{DateTime.Now:tt}</size></voffset>";
-            if (NetworkGameManager.Connected.Value)
+            if (XRINetworkGameManager.Connected.Value)
             {
                 m_LocalPlayerAudioVolume.fillAmount = XRINetworkPlayer.LocalPlayer.playerVoiceAmp;
             }
@@ -148,7 +147,7 @@ namespace XRMultiplayer
             {
                 m_HostRoomPanel.SetActive(NetworkManager.Singleton.IsServer);
                 m_ClientRoomPanel.SetActive(!NetworkManager.Singleton.IsServer);
-                UpdateRoomName(NetworkGameManager.ConnectedRoomName.Value);
+                UpdateRoomName(XRINetworkGameManager.ConnectedRoomName.Value);
                 m_MutedIcon.enabled = false;
                 m_MicOnIcon.enabled = true;
                 m_LocalPlayerAudioVolume.enabled = true;
@@ -193,12 +192,12 @@ namespace XRMultiplayer
 
         public void LogOut()
         {
-            NetworkGameManager.Instance.Disconnect();
+            XRINetworkGameManager.Instance.Disconnect();
         }
 
         public void QuickJoin()
         {
-            NetworkGameManager.Instance.QuickJoinLobby();
+            XRINetworkGameManager.Instance.QuickJoinLobby();
         }
 
         public void QuitGame()
@@ -246,22 +245,22 @@ namespace XRMultiplayer
         // Room Options
         public void UpdateRoomPrivacy(bool toggle)
         {
-            NetworkGameManager.Instance.lobbyManager.UpdateRoomPrivacy(toggle);
+            XRINetworkGameManager.Instance.lobbyManager.UpdateRoomPrivacy(toggle);
         }
 
         public void SubmitNewRoomName(string text)
         {
-            NetworkGameManager.Instance.lobbyManager.UpdateLobbyName(text);
+            XRINetworkGameManager.Instance.lobbyManager.UpdateLobbyName(text);
         }
 
         void UpdateRoomName(string newValue)
         {
-            m_RoomCodeText.text = $"Room Code: {NetworkGameManager.ConnectedRoomCode}";
+            m_RoomCodeText.text = $"Room Code: {XRINetworkGameManager.ConnectedRoomCode}";
             foreach (var t in m_RoomNameText)
             {
-                t.text = NetworkGameManager.ConnectedRoomName.Value;
+                t.text = XRINetworkGameManager.ConnectedRoomName.Value;
             }
-            m_RoomNameInputField.text = NetworkGameManager.ConnectedRoomName.Value;
+            m_RoomNameInputField.text = XRINetworkGameManager.ConnectedRoomName.Value;
         }
 
         // Player Options

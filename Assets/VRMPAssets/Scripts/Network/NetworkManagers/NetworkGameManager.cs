@@ -12,6 +12,16 @@ using CustomNetwork;
 
 namespace CustomMultiplayer
 {
+#if USE_FORCED_BYTE_SERIALIZATION
+    /// <summary>
+    /// Workaround for a bug introduced in NGO 1.9.1.
+    /// </summary>
+    /// <remarks> Delete this class once the bug is fixed in NGO.</remarks>
+    class ForceByteSerialization : NetworkBehaviour
+    {
+        NetworkVariable<byte> m_ForceByteSerialization;
+    }
+#endif
     [RequireComponent(typeof(LobbyManager))]
     public class NetworkGameManager : NetworkBehaviour
     {
@@ -140,8 +150,8 @@ namespace CustomMultiplayer
         /// </summary>
         [SerializeField] private AuthManagerNew m_AuthenticationManager;  // Private field, exposed in the Inspector.
 
-        [SerializeField] public markerEraserSpawn marker;
-        [SerializeField] public markerEraserSpawn eraser;
+        //[SerializeField] public markerEraserSpawn marker;
+        //[SerializeField] public markerEraserSpawn eraser;
 
         /// <summary>
         /// Lobby Manager handles the Lobby and Relay work between players.
@@ -540,7 +550,7 @@ namespace CustomMultiplayer
                 Utils.Log($"{k_DebugPrepend}Connected to game session. Lobby: {m_LobbyManager.connectedLobby.Name}.");
                 m_ConnectionState.Value = ConnectionState.Connected;
                 SubscribeToLobbyEvents();
-                markerEraserSpawn();
+                //markerEraserSpawn();
             }
             else
             {
@@ -552,11 +562,11 @@ namespace CustomMultiplayer
 
         }
 
-        private void markerEraserSpawn()
-        {
-            marker.OnNetworkSpawn();
-            eraser.OnNetworkSpawn();
-        }
+        //private void markerEraserSpawn()
+        //{
+        //    marker.OnNetworkSpawn();
+        //    eraser.OnNetworkSpawn();
+        //}
 
         /// <summary>
         /// Subscribe to lobby update events. This needed to be informed of Lobby changes (name, privacy, etc...).

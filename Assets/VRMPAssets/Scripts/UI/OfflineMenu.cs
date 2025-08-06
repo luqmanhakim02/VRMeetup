@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -34,9 +33,9 @@ namespace XRMultiplayer
 
         private void Awake()
         {
-            NetworkGameManager.Connected.Subscribe(OnConnected);
-            NetworkGameManager.LocalPlayerName.Subscribe(SetPlayerName);
-            NetworkGameManager.LocalPlayerColor.Subscribe(SetPlayerColor);
+            XRINetworkGameManager.Connected.Subscribe(OnConnected);
+            XRINetworkGameManager.LocalPlayerName.Subscribe(SetPlayerName);
+            XRINetworkGameManager.LocalPlayerColor.Subscribe(SetPlayerColor);
 
             OfflinePlayerAvatar.voiceAmp.Subscribe(UpdateMicIcon);
 
@@ -47,40 +46,26 @@ namespace XRMultiplayer
 
         private void Start()
         {
-            NetworkGameManager.Instance.connectionFailedAction += ConnectionFailed;
+            //ShowCustomization();
+            XRINetworkGameManager.Instance.connectionFailedAction += ConnectionFailed;
             m_CustomizationPanel.SetActive(false);
-            
         }
-
-        //private void Update()
-        //{
-        //    if (!m_ConnectionPanel.activeSelf)
-        //    {
-        //        if (!m_LoginPanel.activeSelf)
-        //        {
-        //            ShowCustomization();
-        //        }
-        //    } else
-        //    {
-        //        CompleteCustomization();
-        //    }
-        //}
 
         private void OnDestroy()
         {
-            NetworkGameManager.Connected.Unsubscribe(OnConnected);
-            NetworkGameManager.LocalPlayerName.Unsubscribe(SetPlayerName);
-            NetworkGameManager.LocalPlayerColor.Unsubscribe(SetPlayerColor);
+            XRINetworkGameManager.Connected.Unsubscribe(OnConnected);
+            XRINetworkGameManager.LocalPlayerName.Unsubscribe(SetPlayerName);
+            XRINetworkGameManager.LocalPlayerColor.Unsubscribe(SetPlayerColor);
             OfflinePlayerAvatar.voiceAmp.Unsubscribe(UpdateMicIcon);
             m_VoiceChatManager.selfMuted.Subscribe(MutedChanged);
 
-            NetworkGameManager.Instance.connectionFailedAction -= ConnectionFailed;
+            XRINetworkGameManager.Instance.connectionFailedAction -= ConnectionFailed;
         }
 
         void SetupPlayerDefaults()
         {
-            NetworkGameManager.LocalPlayerName.Value = m_DefaultPlayerName;
-            NetworkGameManager.LocalPlayerColor.Value = m_PlayerColors[Random.Range(0, m_PlayerColors.Length)];
+            XRINetworkGameManager.LocalPlayerName.Value = m_DefaultPlayerName;
+            XRINetworkGameManager.LocalPlayerColor.Value = m_PlayerColors[Random.Range(0, m_PlayerColors.Length)];
         }
 
         void SetPlayerName(string name)

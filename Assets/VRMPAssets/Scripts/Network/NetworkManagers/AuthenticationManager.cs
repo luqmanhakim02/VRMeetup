@@ -121,7 +121,7 @@ namespace XRMultiplayer
         {
             Utils.Log($"{k_DebugPrepend}MPPM Found");
             string mppmString = "";
-            if (CurrentPlayer.ReadOnlyTags().Length > 0)
+            if(CurrentPlayer.ReadOnlyTags().Length > 0)
             {
                 mppmString += CurrentPlayer.ReadOnlyTags()[0];
 

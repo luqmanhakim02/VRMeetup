@@ -1,5 +1,4 @@
 using UnityEngine;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -23,13 +22,13 @@ namespace XRMultiplayer
         /// <inheritdoc/>
         void OnEnable()
         {
-            NetworkGameManager.Connected.Subscribe(ToggleNetworkObjects);
-            ToggleNetworkObjects(NetworkGameManager.Connected.Value);
+            XRINetworkGameManager.Connected.Subscribe(ToggleNetworkObjects);
+            ToggleNetworkObjects(XRINetworkGameManager.Connected.Value);
         }
 
         void Start()
         {
-            NetworkGameManager.Instance.connectionFailedAction += (reason) =>
+            XRINetworkGameManager.Instance.connectionFailedAction += (reason) =>
             {
                 ToggleNetworkObjects(false);
             };
@@ -37,7 +36,7 @@ namespace XRMultiplayer
 
         void OnDestroy()
         {
-            NetworkGameManager.Instance.connectionFailedAction -= (reason) =>
+            XRINetworkGameManager.Instance.connectionFailedAction -= (reason) =>
             {
                 ToggleNetworkObjects(false);
             };
@@ -46,7 +45,7 @@ namespace XRMultiplayer
         /// <inheritdoc/>
         void OnDisable()
         {
-            NetworkGameManager.Connected.Unsubscribe(ToggleNetworkObjects);
+            XRINetworkGameManager.Connected.Unsubscribe(ToggleNetworkObjects);
         }
 
         /// <summary>

@@ -10,7 +10,6 @@ using Unity.Netcode.Transports.UTP;
 using Unity.XR.CoreUtils.Bindings.Variables;
 using Unity.Services.Authentication;
 using UnityEngine.SceneManagement;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -70,10 +69,10 @@ namespace XRMultiplayer
         {
             m_Transport = FindFirstObjectByType<UnityTransport>();
 
-            //if (!Application.isEditor)
-            //{
+            if (!Application.isEditor)
+            {
                 hideEditorFromLobby = false;
-            //}
+            }
             s_HideEditorInLobbies = hideEditorFromLobby;
         }
 
@@ -155,13 +154,13 @@ namespace XRMultiplayer
         /// This function will try to create a lobby and host a networked session.
         /// </summary>
         /// <returns></returns>
-        public async Task<Lobby> CreateLobby(string roomName = null, bool isPrivate = false, int playerCount = NetworkGameManager.maxPlayers)
+        public async Task<Lobby> CreateLobby(string roomName = null, bool isPrivate = false, int playerCount = XRINetworkGameManager.maxPlayers)
         {
             try
             {
                 m_Status.Value = "Creating Relay";
                 // Creates a new Allocation based on the defined max players above
-                var alloc = await RelayService.Instance.CreateAllocationAsync(NetworkGameManager.maxPlayers);
+                var alloc = await RelayService.Instance.CreateAllocationAsync(XRINetworkGameManager.maxPlayers);
 
                 m_Status.Value = "Creating Join Code";
                 // Get a join code based on the Allocation
@@ -200,7 +199,7 @@ namespace XRMultiplayer
 
                 m_Status.Value = "Creating Lobby";
                 // Creates the Lobby with the specified max players and lobby options. Currently just naming "General Lobby"
-                string lobbyName = string.IsNullOrEmpty(roomName) ? $"{NetworkGameManager.LocalPlayerName.Value}'s Room" : $"{roomName}";
+                string lobbyName = string.IsNullOrEmpty(roomName) ? $"{XRINetworkGameManager.LocalPlayerName.Value}'s Room" : $"{roomName}";
 
                 // RATE LIMIT: 2 request per 6 seconds
                 var lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, playerCount, options);
@@ -228,44 +227,24 @@ namespace XRMultiplayer
 
         async Task SetupRelay(Lobby lobby)
         {
-            //m_Status.Value = "Connecting To Relay";
-
-            //Utils.Log($"{k_DebugPrepend}Attempting Relay Join with JoinCode: {lobby.Data[k_JoinCodeKeyIdentifier].Value}");
-
-            //// Get the Join Allocation for the lobby based on the key
-            //var alloc = await RelayService.Instance.JoinAllocationAsync(lobby.Data[k_JoinCodeKeyIdentifier].Value);
-
-            //// Set the transport client data (IP, port, etc..)
-            //m_Transport.SetClientRelayData
-            //(
-            //    alloc.RelayServer.IpV4, (ushort)alloc.RelayServer.Port,
-            //    alloc.AllocationIdBytes, alloc.Key, alloc.ConnectionData, alloc.HostConnectionData
-            //);
-
-            //Utils.Log($"{k_DebugPrepend}Relay join successful.");
-            //return;
-
             try
             {
                 m_Status.Value = "Connecting To Relay";
-                Utils.Log($"{k_DebugPrepend}Attempting Relay Join with JoinCode: {lobby.Data[k_JoinCodeKeyIdentifier].Value}");
-
+                // Get the Join Allocation for the lobby based on the key
                 var alloc = await RelayService.Instance.JoinAllocationAsync(lobby.Data[k_JoinCodeKeyIdentifier].Value);
-
+                // Set the transport client data (IP, port, etc..)
                 m_Transport.SetClientRelayData
                 (
                     alloc.RelayServer.IpV4, (ushort)alloc.RelayServer.Port,
                     alloc.AllocationIdBytes, alloc.Key, alloc.ConnectionData, alloc.HostConnectionData
                 );
-
-                Utils.Log($"{k_DebugPrepend}Relay join successful.");
+                return;
             }
             catch (Exception e)
             {
                 Utils.Log($"{k_DebugPrepend}Relay join failed: {e.Message}", 1);
                 throw;
             }
-
         }
 
         QuickJoinLobbyOptions GetQuickJoinFilterOptions()
@@ -368,7 +347,7 @@ namespace XRMultiplayer
                     };
 
                     await LobbyService.Instance.UpdateLobbyAsync(m_ConnectedLobby.Id, options);
-                    NetworkGameManager.ConnectedRoomName.Value = lobbyName;
+                    XRINetworkGameManager.ConnectedRoomName.Value = lobbyName;
                 }
                 catch (LobbyServiceException e)
                 {
@@ -431,6 +410,7 @@ namespace XRMultiplayer
                     if (m_ConnectedLobby.HostId == playerId)
                     {
                         // Delete Lobby if current owner
+                        Utils.Log($"{k_DebugPrepend}Owner of lobby, shutting down.");
                         Utils.Log($"{k_DebugPrepend}Player is host. Deleting lobby {m_ConnectedLobby.Id}.");
                         await LobbyService.Instance.DeleteLobbyAsync(m_ConnectedLobby.Id);
                         m_ConnectedLobby = null;
@@ -442,10 +422,6 @@ namespace XRMultiplayer
                         await RemoveFromLobby(playerId);
                     }
                     return true;
-                }
-                else
-                {
-                    Utils.Log($"{k_DebugPrepend}No connected lobby to remove player from.");
                 }
             }
             catch (Exception e)
@@ -468,12 +444,12 @@ namespace XRMultiplayer
                 {
                     await LobbyService.Instance.RemovePlayerAsync(m_ConnectedLobby.Id, playerId);
                     m_ConnectedLobby = null;
-                    Utils.Log($"{k_DebugPrepend}Successfully removed player from Lobby.");
+                    Utils.Log($"{k_DebugPrepend}Successfully removed player from Lobby. : {playerId}");
                     return true;
                 }
                 catch (Exception e)
                 {
-                    Utils.Log($"{k_DebugPrepend}Failed to remove player from lobby.\n\n{e}");
+                    Utils.Log($"{k_DebugPrepend}Failed to remove player from lobby. : {playerId} \n\n{e}");
                 }
             }
 
@@ -527,8 +503,8 @@ namespace XRMultiplayer
 
         public static bool CanJoinLobby(Lobby lobby)
         {
-            return (NetworkGameManager.Instance.lobbyManager.connectedLobby == null) ||
-            (NetworkGameManager.Instance.lobbyManager.connectedLobby != null && lobby.Id != NetworkGameManager.Instance.lobbyManager.connectedLobby.Id);
+            return (XRINetworkGameManager.Instance.lobbyManager.connectedLobby == null) ||
+            (XRINetworkGameManager.Instance.lobbyManager.connectedLobby != null && lobby.Id != XRINetworkGameManager.Instance.lobbyManager.connectedLobby.Id);
         }
     }
 }

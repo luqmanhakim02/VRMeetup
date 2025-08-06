@@ -6,22 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: Assets/Scenes/Sample/SampleScene.unity
+    path: Assets/Scenes/SampleScene.unity
     guid: 13f6f87036926f94ab0417ca1b31725c
   - enabled: 0
-    path: Assets/Scenes/Sample/BasicScene.unity
+    path: Assets/Scenes/BasicScene.unity
     guid: bc761d9a86b33554f85fd11bb1f87ba3
   - enabled: 1
-    path: Assets/Scenes/VRMeeetupScenes/StartingHub.unity
-    guid: aac500335c3aecd41ae7b2e642b8fd9d
-  - enabled: 0
-    path: Assets/Scenes/VRMeeetupScenes/NewHubTest.unity
-    guid: dd9665773174e8344ad0161827205008
+    path: Assets/Scenes/StartingHub.unity
+    guid: 95c4396b10d71054db61dcc55bc752f1
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: e3aee76b9372917449aef639e2f74814,
       type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 87b413c5a910b15498a98200731b1754,
-      type: 2}
-    xr.sdk.mock-hmd.settings: {fileID: 11400000, guid: 2694e0d9f0146df449464c31db83f174,
       type: 2}
   m_UseUCBPForAssetBundles: 0

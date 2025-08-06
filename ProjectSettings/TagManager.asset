@@ -9,8 +9,6 @@ TagManager:
   - Anchor
   - PlayerHand
   - Destroyer
-  - Marker
-  - WhiteBoard
   layers:
   - Default
   - TransparentFX

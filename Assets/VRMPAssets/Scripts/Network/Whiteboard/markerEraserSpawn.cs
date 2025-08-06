@@ -1,74 +1,88 @@
-using System;
-using Unity.Netcode;
 using UnityEngine;
+using Unity.Netcode;
 
-public class markerEraserSpawn : NetworkBehaviour
+/// <summary>
+/// Server-side spawner for marker and eraser prefabs.
+/// Place this on a GameObject in the scene (e.g., NetworkManager object). Assign prefabs.
+/// Prefabs MUST be NetworkObject prefabs and registered in NetworkManager's Prefabs list.
+/// </summary>
+public class markerEraserSpawn : MonoBehaviour
 {
-    public GameObject marker;         // Reference to the marker prefab
-    public GameObject eraser;         // Reference to the eraser prefab (new field)
-    public bool DestroyWithSpawner;   // Flag to destroy spawned objects with the spawner
+    [Tooltip("The marker prefab (must contain NetworkObject).")]
+    public GameObject markerPrefab;
 
-    private GameObject m_MarkerInstance;
-    private GameObject m_EraserInstance;
-    private NetworkObject m_SpawnedNetworkMarker;
-    private NetworkObject m_SpawnedNetworkEraser;
+    [Tooltip("The eraser prefab (must contain NetworkObject).")]
+    public GameObject eraserPrefab;
 
-    public override void OnNetworkSpawn()
+    [Tooltip("Optional: spawn location for marker/eraser. If null, spawns at Vector3.zero.")]
+    public Transform spawnRoot;
+
+    private void Start()
     {
-        // Only the server spawns, clients will disable this component on their side
-        enabled = IsServer;
-        if (!enabled || marker == null)
+        if (NetworkManager.Singleton == null)
         {
+            Debug.LogWarning("[markerEraserSpawn] NetworkManager not found in scene.");
             return;
         }
 
-        try
+        if (NetworkManager.Singleton.IsServer)
         {
-            // Instantiate the Marker and Eraser prefabs
-            m_MarkerInstance = Instantiate(marker);
-
-            // Apply the spawner's position and rotation to both Marker and Eraser instances
-            m_MarkerInstance.transform.position = transform.position;
-            m_MarkerInstance.transform.rotation = transform.rotation;
-
-            // Get the NetworkObjects and Spawn them
-            m_SpawnedNetworkMarker = m_MarkerInstance.GetComponent<NetworkObject>();
-           
-            m_SpawnedNetworkMarker.Spawn();
-            
-
-            if (eraser != null)
-            {
-                m_EraserInstance = Instantiate(eraser);
-
-                m_EraserInstance.transform.position = transform.position;
-                m_EraserInstance.transform.rotation = transform.rotation;
-
-                m_SpawnedNetworkEraser = m_EraserInstance.GetComponent<NetworkObject>();
-
-                m_SpawnedNetworkEraser.Spawn();
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"Error spawning marker and eraser: {e}");
+            // Spawn initial shared marker/eraser for lobby
+            SpawnSharedItems();
+            // Listen for future clients if you want to spawn per-client items
+            NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         }
     }
 
-    public override void OnNetworkDespawn()
+    private void OnDestroy()
     {
-        if (IsServer && DestroyWithSpawner)
-        {
-            if (m_SpawnedNetworkMarker != null && m_SpawnedNetworkMarker.IsSpawned)
-            {
-                m_SpawnedNetworkMarker.Despawn();
-            }
+        if (NetworkManager.Singleton != null)
+            NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
+    }
 
-            if (m_SpawnedNetworkEraser != null && m_SpawnedNetworkEraser.IsSpawned)
+    private void OnClientConnected(ulong clientId)
+    {
+        // Option: spawn an extra marker/eraser whenever a client connects
+        // If you want per-client ownership: use SpawnWithOwnership(clientId)
+        SpawnSharedItems();
+    }
+
+    public void SpawnSharedItems()
+    {
+        if (!NetworkManager.Singleton.IsServer)
+        {
+            Debug.Log("[markerEraserSpawn] Not server - won't spawn items.");
+            return;
+        }
+
+        if (markerPrefab != null)
+        {
+            Vector3 pos = spawnRoot != null ? spawnRoot.position : Vector3.zero;
+            var m = Instantiate(markerPrefab, pos, spawnRoot != null ? spawnRoot.rotation : Quaternion.identity);
+            NetworkObject no = m.GetComponent<NetworkObject>();
+            if (no == null)
             {
-                m_SpawnedNetworkEraser.Despawn();
+                Debug.LogError("[markerEraserSpawn] markerPrefab missing NetworkObject component.");
+            }
+            else
+            {
+                no.Spawn(); // visible to all clients
             }
         }
-        base.OnNetworkDespawn();
+
+        if (eraserPrefab != null)
+        {
+            Vector3 pos = spawnRoot != null ? spawnRoot.position + Vector3.right * 0.2f : Vector3.zero + Vector3.right * 0.2f;
+            var e = Instantiate(eraserPrefab, pos, spawnRoot != null ? spawnRoot.rotation : Quaternion.identity);
+            NetworkObject noE = e.GetComponent<NetworkObject>();
+            if (noE == null)
+            {
+                Debug.LogError("[markerEraserSpawn] eraserPrefab missing NetworkObject component.");
+            }
+            else
+            {
+                noE.Spawn();
+            }
+        }
     }
 }

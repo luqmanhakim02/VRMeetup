@@ -4,7 +4,7 @@
 PlayerSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 28
-  productGUID: 2b4069689011af5479dd10671b69dbfb
+  productGUID: bed70340672ad364ca1f145f693d3fae
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
   AndroidEnableSustainedPerformanceMode: 0
@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: VRMeetup
+  productName: VRMeetup(Base)
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -176,8 +176,8 @@ PlayerSettings:
     tvOS: 0
   overrideDefaultApplicationIdentifier: 1
   AndroidBundleVersionCode: 1
-  AndroidMinSdkVersion: 23
-  AndroidTargetSdkVersion: 0
+  AndroidMinSdkVersion: 30
+  AndroidTargetSdkVersion: 32
   AndroidPreferredInstallLocation: 0
   aotOptions: 
   stripEngineCode: 1
@@ -839,23 +839,9 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   scriptingDefineSymbols:
-    Android: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS;READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    EmbeddedLinux: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    GameCoreScarlett: READY_PLAYER_ME
-    GameCoreXboxOne: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    LinuxHeadlessSimulation: READY_PLAYER_ME
-    Nintendo Switch: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    PS4: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    PS5: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    QNX: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    ReservedCFE: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    Standalone: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS;READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    VisionOS: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    WebGL: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    Windows Store Apps: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS;READY_PLAYER_ME
-    XboxOne: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
-    iPhone: READY_PLAYER_ME
-    tvOS: READY_PLAYER_ME;UNITY_POST_PROCESSING_STACK_V2
+    Android: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
+    Standalone: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
+    Windows Store Apps: USE_INPUT_SYSTEM_POSE_CONTROL;USE_STICK_CONTROL_THUMBSTICKS
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
@@ -890,16 +876,16 @@ PlayerSettings:
   editorAssembliesCompatibilityLevel: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
-  metroPackageName: VRMeetup
+  metroPackageName: VRMeetupBase
   metroPackageVersion: 1.0.0.0
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
   metroCertificateIssuer: 
   metroCertificateNotAfter: 0000000000000000
-  metroApplicationDescription: VRMeetup
+  metroApplicationDescription: VRMeetup(Base)
   wsaImages: {}
-  metroTileShortName: VRMeetup
+  metroTileShortName: VRMeetup(Base)
   metroTileShowName: 0
   metroMediumTileShowName: 0
   metroLargeTileShowName: 0
@@ -967,7 +953,7 @@ PlayerSettings:
   qnxGraphicConfPath: 
   apiCompatibilityLevel: 6
   captureStartupLogs: {}
-  activeInputHandler: 2
+  activeInputHandler: 1
   windowsGamepadBackendHint: 0
   cloudProjectId: ebd059f2-c40f-4ffc-a317-d424827b7db1
   framebufferDepthMemorylessMode: 0

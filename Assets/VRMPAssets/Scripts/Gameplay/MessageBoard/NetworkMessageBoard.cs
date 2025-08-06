@@ -3,7 +3,6 @@ using Unity.Netcode;
 using Unity.Collections;
 using System;
 using UnityEngine.XR.Interaction.Toolkit.Samples.SpatialKeyboard;
-using CustomMultiplayer;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -44,7 +43,7 @@ namespace XRMultiplayer
         /// <inheritdoc/>
         void Start()
         {
-            NetworkGameManager.Connected.Subscribe(ConnectedToNetwork);
+            XRINetworkGameManager.Connected.Subscribe(ConnectedToNetwork);
             messageList = new NetworkList<FixedString512Bytes>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         }
 
@@ -153,8 +152,8 @@ namespace XRMultiplayer
             base.OnInspectorGUI();
             GUILayout.Space(10);
             GUILayout.Label("Debug Area", EditorStyles.boldLabel);
-            GUI.enabled = NetworkGameManager.Connected.Value;
-            if(!NetworkGameManager.Connected.Value)
+            GUI.enabled = XRINetworkGameManager.Connected.Value;
+            if(!XRINetworkGameManager.Connected.Value)
             {
                 GUILayout.Label("Connect to a network to submit messages.", EditorStyles.helpBox);
             }

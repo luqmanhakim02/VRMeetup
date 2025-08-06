@@ -7,6 +7,7 @@ using Unity.XR.CoreUtils.Bindings.Variables;
 using UnityEngine;
 using Unity.Services.Lobbies;
 using UnityEditor;
+using CustomNetwork;
 
 namespace XRMultiplayer
 {
@@ -148,10 +149,19 @@ namespace XRMultiplayer
         LobbyManager m_LobbyManager;
 
         /// <summary>
+        /// Expose AuthManagerNew as a serialized field to allow assignment in the Inspector.
+        /// </summary>
+        [SerializeField] private AuthManagerNew m_AuthenticationManager;  // Private field, exposed in the Inspector.
+
+        /// <summary>
         /// Lobby Manager handles the Lobby and Relay work between players.
         /// </summary>
-        public AuthenticationManager authenticationManager => m_AuthenticationManager;
-        AuthenticationManager m_AuthenticationManager;
+        /// 
+        public AuthManagerNew authenticationManager => m_AuthenticationManager;
+        //AuthenticationManager m_AuthenticationManager;
+
+        [SerializeField] public markerEraserSpawn marker;
+        [SerializeField] public markerEraserSpawn eraser;
 
         /// <summary>
         /// List that handles all current players by ID.
@@ -182,8 +192,18 @@ namespace XRMultiplayer
             s_Instance = this;
 
             // Check for Lobby Manager, if none exist, early out.
-            if (TryGetComponent(out m_LobbyManager) && TryGetComponent(out m_AuthenticationManager))
+            if (TryGetComponent(out m_LobbyManager))
             {
+                // Try to find the AuthenticationManager in the scene.
+                m_AuthenticationManager = FindFirstObjectByType<AuthManagerNew>();
+
+                if (m_AuthenticationManager == null)
+                {
+                    Utils.Log($"{k_DebugPrepend}AuthManagerNew is not found in the scene.", 2);
+                    enabled = false;
+                    return;
+                }
+
                 m_LobbyManager.OnLobbyFailed += ConnectionFailed;
             }
             else
@@ -210,6 +230,7 @@ namespace XRMultiplayer
 
             // Wait for Authentication to complete.
             bool signedIn = await Authenticate();
+            //bool signedIn = AuthManagerNew.IsAuthenticated();
             if (!signedIn)
             {
                 Utils.Log($"{k_DebugPrepend}Failed to Authenticate.", 1);
@@ -271,7 +292,7 @@ namespace XRMultiplayer
         }
         public bool IsAuthenticated()
         {
-            return AuthenticationManager.IsAuthenticated();
+            return AuthManagerNew.IsAuthenticated();
         }
         /// <summary>
         /// Called from XRINetworkPlayer once they have spawned.
@@ -391,7 +412,7 @@ namespace XRMultiplayer
         public virtual void ConnectionFailed(string reason)
         {
             connectionFailedAction?.Invoke(reason);
-            m_ConnectionState.Value = AuthenticationManager.IsAuthenticated() ? ConnectionState.Authenticated : ConnectionState.None;
+            m_ConnectionState.Value = AuthManagerNew.IsAuthenticated() ? ConnectionState.Authenticated : ConnectionState.None;
         }
 
         /// <summary>
@@ -535,6 +556,7 @@ namespace XRMultiplayer
                 Utils.Log($"{k_DebugPrepend}Connected to game session. Lobby: {m_LobbyManager.connectedLobby.Name}.");
                 m_ConnectionState.Value = ConnectionState.Connected;
                 SubscribeToLobbyEvents();
+                markerEraserSpawn();
             }
             else
             {
@@ -663,6 +685,55 @@ namespace XRMultiplayer
             }
             Utils.Log($"{k_DebugPrepend}Disconnected from Game.");
             return fullyDisconnected;
+        }
+
+        private void markerEraserSpawn()
+        {
+            // Ensure NetworkManager exists
+            if (NetworkManager.Singleton == null)
+            {
+                Debug.LogWarning($"{k_DebugPrepend}NetworkManager not available — cannot spawn marker/eraser.");
+                return;
+            }
+
+            // Only the server/host should perform NetworkObject.Spawn()
+            if (!NetworkManager.Singleton.IsServer)
+            {
+                Debug.Log($"{k_DebugPrepend}Not the server/host — skipping marker/eraser spawn.");
+                return;
+            }
+
+            // If you are using the markerEraserSpawn component (the spawner script)
+            // we expect it to have a SpawnSharedItems() method that does Instantiate(prefab) + NetworkObject.Spawn().
+            if (marker != null)
+            {
+                try
+                {
+                    // Prefer calling the spawner once (it will spawn both marker & eraser).
+                    marker.SpawnSharedItems();
+                    Debug.Log($"{k_DebugPrepend}Spawned marker & eraser via marker spawner.");
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"{k_DebugPrepend}Failed to spawn via 'marker' spawner: {ex.Message}\nFalling back to per-component spawn attempt.");
+                    // fallthrough to fallback below
+                }
+            }
+
+            // If marker spawner wasn't available or failed, attempt a fallback using the eraser spawner
+            // (in case you only assigned one of them as a spawner).
+            if ((marker == null || !NetworkManager.Singleton.IsServer) && eraser != null)
+            {
+                try
+                {
+                    eraser.SpawnSharedItems();
+                    Debug.Log($"{k_DebugPrepend}Spawned marker & eraser via eraser spawner.");
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"{k_DebugPrepend}Failed to spawn via 'eraser' spawner: {ex.Message}");
+                }
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
-using CustomMultiplayer;
 
 namespace XRMultiplayer
 {
@@ -14,7 +13,7 @@ namespace XRMultiplayer
         Vector3 m_ResetPosition;
         private void Start()
         {
-            NetworkGameManager.Connected.Subscribe(UpdateResetPosition);
+            XRINetworkGameManager.Connected.Subscribe(UpdateResetPosition);
             m_TeleportationProvider = GetComponentInChildren<TeleportationProvider>();
 
             m_ResetPosition = offlinePosition;
